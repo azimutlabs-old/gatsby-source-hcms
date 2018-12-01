@@ -1,0 +1,55 @@
+{
+  "name": "gatsby-source-hcms",
+  "version": "0.0.1",
+  "description": "Gatsby source plugin for building websites using hCMS as a data source",
+  "author": {
+    "email": "t.tazhibayev@alabs.team",
+    "name": "Azimut Labs",
+    "url": "http://alabs.team"
+  },
+  "maintainers": [
+    {
+      "name": "Azimut Labs",
+      "email": "t.tazhibayev@alabs.team",
+      "url": "http://alabs.team"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/azimutlabs/gatsby-source-hcms.git"
+  },
+  "bugs": {
+    "url": "https://github.com/azimutlabs/gatsby-source-hcms/issues"
+  },
+  "license": "MIT",
+  "homepage": "http://alabs.team",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "babel src --out-dir .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write 'src/**/*.js'",
+    "watch": "babel -w src --out-dir ."
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "gatsby-source-plugin",
+    "hcms"
+  ],
+  "dependencies": {
+    "node-fetch": "^2.3.0",
+    "query-string": "^6.2.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "^1.5.3"
+  },
+  "pre-commit": [
+    "format"
+  ]
+}
