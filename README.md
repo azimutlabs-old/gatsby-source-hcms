@@ -8,6 +8,13 @@ Source plugin for pulling documents into Gatsby from a hCMS API.
 
 ## How to use
 
+Set environment variable to define project
+
+```bash
+export PROJECT_SLUG=my-blog
+```
+
+
 ```javascript
 // In your gatsby-config.js
 plugins: [

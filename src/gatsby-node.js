@@ -1,5 +1,5 @@
-const fetch = require("node-fetch")
-const queryString = require("query-string")
+const fetch = require('node-fetch')
+const queryString = require('query-string')
 
 exports.sourceNodes = (
   { actions, createNodeId, createContentDigest },
@@ -19,7 +19,10 @@ exports.sourceNodes = (
       parent: null,
       children: [],
       internal: {
-        type: 'Hcms' + entity.entity.charAt(0).toUpperCase() + entity.entity.slice(1),
+        type:
+          'Hcms' +
+          entity.entity.charAt(0).toUpperCase() +
+          entity.entity.slice(1),
         content: nodeContent,
         contentDigest: createContentDigest(entity),
       },
@@ -31,27 +34,27 @@ exports.sourceNodes = (
   const apiUrl = `${configOptions.apiURL}`
 
   let headers = new fetch.Headers()
-  headers.append("Authorization", `Bearer ${configOptions.key}`)
+  headers.append('Authorization', `Bearer ${configOptions.key}`)
 
   let contentTypes = [
     {
       description: 'projects',
       url: 'projects',
-      slug: 'project'
-    }, {
+      slug: 'project',
+    },
+    {
       description: 'pages',
       url: `projects/${process.env.PROJECT_SLUG}/pages`,
-      slug: 'page'
-    }, {
+      slug: 'page',
+    },
+    {
       description: 'languages',
       url: 'languages',
-      slug: 'language'
-    }
+      slug: 'language',
+    },
   ]
 
-  return (
-
-    fetch(`${apiUrl}/content-types`, { headers: headers})
+  return fetch(`${apiUrl}/content-types`, { headers: headers })
     .then(response => response.json())
     .then(data => {
       data = data.concat(contentTypes)
@@ -61,11 +64,10 @@ exports.sourceNodes = (
           contentType.url = `content-manager/${contentType.slug}`
         }
         fetch(`${apiUrl}/${contentType.url}`, {
-          headers: headers
+          headers: headers,
         })
           .then(response => response.json())
           .then(data => {
-            console.log(data)
             data.forEach(item => {
               item.entity = contentType.slug
               const nodeData = processEntity(item)
@@ -75,5 +77,4 @@ exports.sourceNodes = (
           .catch(err => console.error(err))
       })
     })
-  )
 }
