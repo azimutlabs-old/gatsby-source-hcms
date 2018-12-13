@@ -55,7 +55,7 @@ exports.sourceNodes = async (
   ]
 
   const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
-  data = await response.json()
+  let data = await response.json()
   data = contentTypes.concat(data)
   for (let index = 0; index < data.length; index++) {
     let contentType = data[index]
