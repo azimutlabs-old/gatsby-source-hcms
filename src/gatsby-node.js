@@ -67,11 +67,12 @@ exports.sourceNodes = async (
       headers: headers,
     })
     const contentTypeData = await contentTypeResponse.json()
-    contentTypeData.forEach(item => {
+    for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
+      let item = contentTypeData[ctIndex]
       item.entity = contentType.slug
       const nodeData = processEntity(item)
       createNode(nodeData)
-    })
+    }
   }
   return
 }
