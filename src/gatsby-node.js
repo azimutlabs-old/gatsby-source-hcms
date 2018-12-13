@@ -1,7 +1,8 @@
+const { forEach } = require('p-iteration')
 const fetch = require('node-fetch')
 const queryString = require('query-string')
 
-exports.sourceNodes = (
+exports.sourceNodes = async (
   { actions, createNodeId, createContentDigest },
   configOptions
 ) => {
@@ -54,27 +55,24 @@ exports.sourceNodes = (
     },
   ]
 
-  return fetch(`${apiUrl}/content-types`, { headers: headers })
-    .then(response => response.json())
-    .then(data => {
-      data = data.concat(contentTypes)
-      data.forEach(contentType => {
-        console.log(`Fetching "${contentType.description}" ...`)
-        if ('id' in contentType) {
-          contentType.url = `content-manager/${contentType.slug}`
-        }
-        fetch(`${apiUrl}/${contentType.url}`, {
-          headers: headers,
-        })
-          .then(response => response.json())
-          .then(data => {
-            data.forEach(item => {
-              item.entity = contentType.slug
-              const nodeData = processEntity(item)
-              createNode(nodeData)
-            })
-          })
-          .catch(err => console.error(err))
-      })
+  const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
+  data = await response.json()
+  data = contentTypes.concat(data)
+  for (let index = 0; index < data.length; index++) {
+    let contentType = data[index]
+    console.log(`Fetching "${contentType.description}" ...`)
+    if ('id' in contentType) {
+      contentType.url = `content-manager/${contentType.slug}`
+    }
+    const contentTypeResponse = await fetch(`${apiUrl}/${contentType.url}`, {
+      headers: headers,
     })
+    const contentTypeData = await contentTypeResponse.json()
+    contentTypeData.forEach(item => {
+      item.entity = contentType.slug
+      const nodeData = processEntity(item)
+      createNode(nodeData)
+    })
+  }
+  return
 }
