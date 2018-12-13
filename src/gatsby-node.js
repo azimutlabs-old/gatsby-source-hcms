@@ -1,4 +1,3 @@
-const { forEach } = require('p-iteration')
 const fetch = require('node-fetch')
 const queryString = require('query-string')
 
