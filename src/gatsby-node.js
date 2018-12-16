@@ -12,14 +12,15 @@ exports.sourceNodes = async (
   configOptions,
 ) => {
   const { createNode } = actions
-  
-  console.log('!!!STARTED HCMS!!!!')
-  
+
+  console.log('Started Fetching from HCMS')
+
   // Gatsby adds a configOption that's not needed for this plugin, delete it
   delete configOptions.plugins
 
   // Setting root url to API
   const apiUrl = `${configOptions.apiURL}`
+
   // Setting Authorization token for API
   let headers = new fetch.Headers()
   headers.append('Authorization', `Bearer ${configOptions.key}`)
@@ -28,36 +29,70 @@ exports.sourceNodes = async (
   /**
    * This method will try to create data for GraphQL nodes
    * @param entity JSON object data fetched from API
-   * @returns {any} JSON object if node
+   * @param parent_id ID of higher parent node
+   * @returns {any} JSON Array of NodeData
    */
-  const processEntity = entity => {
-    const nodeId = createNodeId(`hcms-${entity.entity}-${entity.id}`)
+  const processEntity = (entity, parent_id) => {
+    const nodeId = createNodeId(`hcms-${entity.slug}-${entity.id}`)
     const nodeContent = JSON.stringify(entity)
-
+    
+    // This is array of Nodes that should be created
+    let nodeArray = []
+    
+    /*
+    Node type is created by value of its slug
+    
+    if slug name is category then it will be turned into HcmsCategory,
+    
+    which will be accessed as allHcmsCategory in GraphQL
+     */
+    const type = 'Hcms' +
+      entity.slug.charAt(0).toUpperCase() +
+      entity.slug.slice(1)
+    
+    /*
+    If this entity has children we must recursively create NodeData 
+    array from them 
+     */
+    if (entity.children)
+      for (let i = 0; i < entity.children.length; i++) {
+        let entityChild = entity.children[i]
+        
+        // Sometimes children may not have slug, we will assign parents slug
+        if (!('slug' in entityChild))
+          entityChild.slug = entity.slug
+        
+        nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
+      }
+        
+    // We must get ids of its children
+    let childIds = nodeArray.map(nodeData => {
+      return nodeData.id
+    })
+    
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
-      parent: null,
-      children: [],
+      parent: parent_id,
+      children: childIds,
       internal: {
-        type:
-          'Hcms' +
-          entity.entity.charAt(0).toUpperCase() +
-          entity.entity.slice(1),
+        type: type,
         content: nodeContent,
         contentDigest: createContentDigest(entity),
       },
     })
 
-    return nodeData
+    nodeArray.push(nodeData)
+    
+    return nodeArray
   }
 
 
-  // These are content types which were created aside from
-  // dynamically added content types
+  /* These are content types which were created aside from
+     dynamically added content types */
   let contentTypes = [
     {
       description: 'projects',
-      url: 'projects/tree',
+      url: 'projects',
       slug: 'project',
     },
     {
@@ -77,25 +112,51 @@ exports.sourceNodes = async (
     },
   ]
 
+  // We must fetch data that was generated dynamically
   const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
   let data = await response.json()
   data = contentTypes.concat(data)
+
+  // This is all nodes that will be created
+  let nodesData = []
+  
   for (let index = 0; index < data.length; index++) {
     let contentType = data[index]
     console.log(`Fetching "${contentType.description}" ...`)
+    
+    /* 
+    If this content type has id in its JSON object
+    it is dynamically created data its url should be fetched from
+    content-manager/slug path 
+    */
     if ('id' in contentType) {
       contentType.url = `content-manager/${contentType.slug}`
     }
+    
     const contentTypeResponse = await fetch(`${apiUrl}/${contentType.url}`, {
       headers: headers,
     })
     const contentTypeData = await contentTypeResponse.json()
+    
+    
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-      item.entity = contentType.slug
-      const nodeData = processEntity(item)
-      createNode(nodeData)
+      
+      /* Some content type data may not have a slug 
+      * */
+      if (!('slug' in item))
+        item.slug = contentType.slug
+
+      nodesData = nodesData.concat(processEntity(item, null))
     }
   }
-  return
+
+  console.log(nodesData)
+  
+  // Finally we are creating nodes
+  for (let nodeIndex = 0; nodeIndex < nodesData.length; nodeIndex++) {
+    createNode(nodesData[nodeIndex])
+
+  }
+  console.log('FINISHED')
 }
