@@ -35,10 +35,10 @@ exports.sourceNodes = async (
   const processEntity = (entity, parent_id) => {
     const nodeId = createNodeId(`hcms-${entity.slug}-${entity.id}`)
     const nodeContent = JSON.stringify(entity)
-    
+
     // This is array of Nodes that should be created
     let nodeArray = []
-    
+
     /*
     Node type is created by value of its slug
     
@@ -49,7 +49,7 @@ exports.sourceNodes = async (
     const type = 'Hcms' +
       entity.slug.charAt(0).toUpperCase() +
       entity.slug.slice(1)
-    
+
     /*
     If this entity has children we must recursively create NodeData 
     array from them 
@@ -57,19 +57,20 @@ exports.sourceNodes = async (
     if (entity.children)
       for (let i = 0; i < entity.children.length; i++) {
         let entityChild = entity.children[i]
-        
+
         // Sometimes children may not have slug, we will assign parents slug
+        // if parents slug is category then child will be subCategory
         if (!('slug' in entityChild))
-          entityChild.slug = entity.slug
-        
+          entityChild.slug = `sub${entity.slug.charAt(0).toUpperCase() + entity.slug.slice(1)}`
+
         nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
       }
-        
+
     // We must get ids of its children
     let childIds = nodeArray.map(nodeData => {
       return nodeData.id
     })
-    
+
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
       parent: parent_id,
@@ -82,7 +83,7 @@ exports.sourceNodes = async (
     })
 
     nodeArray.push(nodeData)
-    
+
     return nodeArray
   }
 
@@ -119,11 +120,11 @@ exports.sourceNodes = async (
 
   // This is all nodes that will be created
   let nodesData = []
-  
+
   for (let index = 0; index < data.length; index++) {
     let contentType = data[index]
     console.log(`Fetching "${contentType.description}" ...`)
-    
+
     /* 
     If this content type has id in its JSON object
     it is dynamically created data its url should be fetched from
@@ -132,16 +133,16 @@ exports.sourceNodes = async (
     if ('id' in contentType) {
       contentType.url = `content-manager/${contentType.slug}`
     }
-    
+
     const contentTypeResponse = await fetch(`${apiUrl}/${contentType.url}`, {
       headers: headers,
     })
     const contentTypeData = await contentTypeResponse.json()
-    
-    
+
+
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-      
+
       /* Some content type data may not have a slug 
       * */
       if (!('slug' in item))
@@ -151,7 +152,6 @@ exports.sourceNodes = async (
     }
   }
 
-  console.log(nodesData)
   
   // Finally we are creating nodes
   for (let nodeIndex = 0; nodeIndex < nodesData.length; nodeIndex++) {
