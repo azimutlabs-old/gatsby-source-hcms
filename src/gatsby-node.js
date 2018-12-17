@@ -55,25 +55,24 @@ exports.sourceNodes = async (
     If this entity has children we must recursively create NodeData 
     array from them 
      */
-    // if (entity.children)
-    //   for (let i = 0; i < entity.children.length; i++) {
-    //     let entityChild = entity.children[i]
-    //
-    //     if (!entityChild)
-    //       continue;
-    //
-    //     entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity;
-    //
-    //     nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
-    //   }
+    if (entity.children)
+      for (let i = 0; i < entity.children.length; i++) {
+        let entityChild = entity.children[i]
+    
+        if (!entityChild)
+          continue;
+    
+        entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity;
+    
+        nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
+      }
 
     // We must get ids of its children
     let childIds = nodeArray.map(nodeData => {
       return nodeData.id
     })
     
-    childIds = [];
-
+    
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
       parent: parentId,
