@@ -152,6 +152,13 @@ exports.sourceNodes = async (
       * */
       item.entity = (item.slug) ? item.slug : contentType.slug;
       
+      /*
+      !!!!!!
+       */
+      if (contentType.is_root) {
+        item.entity = contentType.slug;
+      }
+      
       nodesData = nodesData.concat(processEntity(item, null))
     }
   }
