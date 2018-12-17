@@ -29,51 +29,54 @@ exports.sourceNodes = async (
   /**
    * This method will try to create data for GraphQL nodes
    * @param entity JSON object data fetched from API
-   * @param parent_id ID of higher parent node
-   * @returns {any} JSON Array of NodeData
+   * @param parentId ID of higher parent node
+   * @returns {Array} JSON Array of NodeData
    */
-  const processEntity = (entity, parent_id) => {
-    const nodeId = createNodeId(`hcms-${entity.slug}-${entity.id}`)
+  const processEntity = (entity, parentId) => {
+    const nodeId = createNodeId(`hcms-${entity.entity}-${entity.id}`)
     const nodeContent = JSON.stringify(entity)
-
+    
+    
     // This is array of Nodes that should be created
     let nodeArray = []
 
     /*
-    Node type is created by value of its slug
+    Node type is created by value of its entity
     
-    if slug name is category then it will be turned into HcmsCategory,
+    if entity name is category then it will be turned into HcmsCategory,
     
     which will be accessed as allHcmsCategory in GraphQL
      */
     const type = 'Hcms' +
-      entity.slug.charAt(0).toUpperCase() +
-      entity.slug.slice(1)
+      entity.entity.charAt(0).toUpperCase() +
+      entity.entity.slice(1)
 
     /*
     If this entity has children we must recursively create NodeData 
     array from them 
      */
-    if (entity.children)
-      for (let i = 0; i < entity.children.length; i++) {
-        let entityChild = entity.children[i]
-
-        // Sometimes children may not have slug, we will assign parents slug
-        // if parents slug is category then child will be subCategory
-        if (!('slug' in entityChild))
-          entityChild.slug = `sub${entity.slug.charAt(0).toUpperCase() + entity.slug.slice(1)}`
-
-        nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
-      }
+    // if (entity.children)
+    //   for (let i = 0; i < entity.children.length; i++) {
+    //     let entityChild = entity.children[i]
+    //
+    //     if (!entityChild)
+    //       continue;
+    //
+    //     entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity;
+    //
+    //     nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
+    //   }
 
     // We must get ids of its children
     let childIds = nodeArray.map(nodeData => {
       return nodeData.id
     })
+    
+    childIds = [];
 
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
-      parent: parent_id,
+      parent: parentId,
       children: childIds,
       internal: {
         type: type,
@@ -94,30 +97,33 @@ exports.sourceNodes = async (
     {
       description: 'projects',
       url: 'projects',
-      slug: 'project',
+      slug: 'projects',
+      is_root: true
     },
-    {
-      description: 'categories',
-      url: 'categories/tree',
-      slug: 'categories',
-    },
-    {
-      description: 'pages',
-      url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
-      slug: 'page',
-    },
-    {
-      description: 'languages',
-      url: 'languages',
-      slug: 'language',
-    },
+    // {
+    //   description: 'categories',
+    //   url: 'categories/tree',
+    //   slug: 'categories',
+    // },
+    // {
+    //   description: 'pages',
+    //   url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
+    //   slug: 'pages',
+    //   is_root: true
+    // },
+    // {
+    //   description: 'languages',
+    //   url: 'languages',
+    //   slug: 'language',
+    // },
   ]
 
   // We must fetch data that was generated dynamically
-  const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
-  let data = await response.json()
-  data = contentTypes.concat(data)
-
+  // const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
+  // let data = await response.json()
+  // data = contentTypes.concat(data)
+  let data = contentTypes;
+  
   // This is all nodes that will be created
   let nodesData = []
 
@@ -142,12 +148,11 @@ exports.sourceNodes = async (
 
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-
+      
       /* Some content type data may not have a slug 
       * */
-      if (!('slug' in item))
-        item.slug = contentType.slug
-
+      item.entity = (item.slug) ? item.slug : contentType.slug;
+      
       nodesData = nodesData.concat(processEntity(item, null))
     }
   }
