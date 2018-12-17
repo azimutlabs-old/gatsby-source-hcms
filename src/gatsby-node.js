@@ -100,29 +100,28 @@ exports.sourceNodes = async (
       slug: 'projects',
       is_root: true
     },
-    // {
-    //   description: 'categories',
-    //   url: 'categories/tree',
-    //   slug: 'categories',
-    // },
-    // {
-    //   description: 'pages',
-    //   url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
-    //   slug: 'pages',
-    //   is_root: true
-    // },
-    // {
-    //   description: 'languages',
-    //   url: 'languages',
-    //   slug: 'language',
-    // },
+    {
+      description: 'categories',
+      url: 'categories/tree',
+      slug: 'categories',
+    },
+    {
+      description: 'pages',
+      url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
+      slug: 'pages',
+      is_root: true
+    },
+    {
+      description: 'languages',
+      url: 'languages',
+      slug: 'language',
+    },
   ]
 
   // We must fetch data that was generated dynamically
-  // const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
-  // let data = await response.json()
-  // data = contentTypes.concat(data)
-  let data = contentTypes;
+  const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
+  let data = await response.json()
+  data = contentTypes.concat(data)
   
   // This is all nodes that will be created
   let nodesData = []
