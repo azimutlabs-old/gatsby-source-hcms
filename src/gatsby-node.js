@@ -34,9 +34,8 @@ exports.sourceNodes = async (
    */
   const processEntity = (entity, parentId) => {
     const nodeId = createNodeId(`hcms-${entity.entity}-${entity.id}`)
-    const nodeContent = JSON.stringify(entity)
-    
-    
+
+
     // This is array of Nodes that should be created
     let nodeArray = []
 
@@ -55,24 +54,23 @@ exports.sourceNodes = async (
     If this entity has children we must recursively create NodeData 
     array from them 
      */
-    if (entity.children)
-      for (let i = 0; i < entity.children.length; i++) {
-        let entityChild = entity.children[i]
-    
-        if (!entityChild)
-          continue;
-    
-        entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity;
-    
+    let children = entity.children
+    let childIds = []
+    delete entity.children
+    if (children) {
+      for (let i = 0; i < children.length; i++) {
+        let entityChild = children[i]
+
+        entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity
+
         nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
       }
+    }
 
-    // We must get ids of its children
-    let childIds = nodeArray.map(nodeData => {
-      return nodeData.id
-    })
-    
-    
+    for (let i = 0; i < nodeArray.length; i++)
+      childIds.push(nodeArray[i].id)
+
+    const nodeContent = JSON.stringify(entity)
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
       parent: parentId,
@@ -85,8 +83,8 @@ exports.sourceNodes = async (
     })
 
     nodeArray.push(nodeData)
-
-    return nodeArray
+    
+    return nodeArray.reverse()
   }
 
 
@@ -97,7 +95,7 @@ exports.sourceNodes = async (
       description: 'projects',
       url: 'projects',
       slug: 'projects',
-      is_root: true
+      is_root: true,
     },
     {
       description: 'categories',
@@ -108,12 +106,12 @@ exports.sourceNodes = async (
       description: 'pages',
       url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
       slug: 'pages',
-      is_root: true
+      is_root: true,
     },
     {
       description: 'languages',
       url: 'languages',
-      slug: 'language',
+      slug: 'languages',
     },
   ]
 
@@ -121,7 +119,7 @@ exports.sourceNodes = async (
   const response = await fetch(`${apiUrl}/content-types`, { headers: headers })
   let data = await response.json()
   data = contentTypes.concat(data)
-  
+
   // This is all nodes that will be created
   let nodesData = []
 
@@ -146,23 +144,19 @@ exports.sourceNodes = async (
 
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-      
+
       /* Some content type data may not have a slug 
       * */
-      item.entity = (item.slug) ? item.slug : contentType.slug;
-      
-      /*
-      !!!!!!
-       */
-      if (contentType.is_root) {
-        item.entity = contentType.slug;
-      }
-      
+      item.entity = (item.slug) ? item.slug : contentType.slug
+
+      if (contentType.is_root)
+        item.entity = contentType.slug
+
       nodesData = nodesData.concat(processEntity(item, null))
     }
   }
 
-  
+
   // Finally we are creating nodes
   for (let nodeIndex = 0; nodeIndex < nodesData.length; nodeIndex++) {
     createNode(nodesData[nodeIndex])
