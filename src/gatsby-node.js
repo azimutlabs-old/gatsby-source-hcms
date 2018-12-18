@@ -94,22 +94,22 @@ exports.sourceNodes = async (
     {
       description: 'projects',
       url: 'projects',
-      slug: 'projects',
+      slug: 'project',
     },
     {
       description: 'categories',
       url: 'categories/tree',
-      slug: 'categories',
+      slug: 'category',
     },
     {
       description: 'pages',
       url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
-      slug: 'pages',
+      slug: 'page',
     },
     {
       description: 'languages',
       url: 'languages',
-      slug: 'languages',
+      slug: 'language',
     },
   ]
 
