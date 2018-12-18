@@ -61,7 +61,7 @@ exports.sourceNodes = async (
       for (let i = 0; i < children.length; i++) {
         let entityChild = children[i]
 
-        entityChild.entity = (entityChild.slug) ? entityChild.slug : entity.entity
+        entityChild.entity = entity.entity;
 
         nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
       }
@@ -84,7 +84,7 @@ exports.sourceNodes = async (
 
     nodeArray.push(nodeData)
     
-    return nodeArray.reverse()
+    return nodeArray //nodeArray.reverse()
   }
 
 
@@ -95,7 +95,6 @@ exports.sourceNodes = async (
       description: 'projects',
       url: 'projects',
       slug: 'projects',
-      is_root: true,
     },
     {
       description: 'categories',
@@ -106,7 +105,6 @@ exports.sourceNodes = async (
       description: 'pages',
       url: `projects/${process.env.PROJECT_SLUG}/pages/tree`,
       slug: 'pages',
-      is_root: true,
     },
     {
       description: 'languages',
@@ -144,14 +142,9 @@ exports.sourceNodes = async (
 
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-
-      /* Some content type data may not have a slug 
-      * */
-      item.entity = (item.slug) ? item.slug : contentType.slug
-
-      if (contentType.is_root)
-        item.entity = contentType.slug
-
+      
+      item.entity = contentType.slug;
+      
       nodesData = nodesData.concat(processEntity(item, null))
     }
   }
@@ -160,7 +153,6 @@ exports.sourceNodes = async (
   // Finally we are creating nodes
   for (let nodeIndex = 0; nodeIndex < nodesData.length; nodeIndex++) {
     createNode(nodesData[nodeIndex])
-
   }
   console.log('FINISHED')
 }
