@@ -9,7 +9,7 @@ const queryString = require('query-string')
 
 exports.sourceNodes = async (
   { actions, createNodeId, createContentDigest },
-  configOptions,
+  configOptions
 ) => {
   const { createNode } = actions
 
@@ -25,7 +25,6 @@ exports.sourceNodes = async (
   let headers = new fetch.Headers()
   headers.append('Authorization', `Bearer ${configOptions.key}`)
 
-
   /**
    * This method will try to create data for GraphQL nodes
    * @param entity JSON object data fetched from API
@@ -34,7 +33,6 @@ exports.sourceNodes = async (
    */
   const processEntity = (entity, parentId) => {
     const nodeId = createNodeId(`hcms-${entity.entity}-${entity.id}`)
-
 
     // This is array of Nodes that should be created
     let nodeArray = []
@@ -46,9 +44,8 @@ exports.sourceNodes = async (
     
     which will be accessed as allHcmsCategory in GraphQL
      */
-    const type = 'Hcms' +
-      entity.entity.charAt(0).toUpperCase() +
-      entity.entity.slice(1)
+    const type =
+      'Hcms' + entity.entity.charAt(0).toUpperCase() + entity.entity.slice(1)
 
     /*
     If this entity has children we must recursively create NodeData 
@@ -61,20 +58,20 @@ exports.sourceNodes = async (
       for (let i = 0; i < children.length; i++) {
         let entityChild = children[i]
 
-        entityChild.entity = entity.entity;
+        entityChild.entity = entity.entity
 
         nodeArray = nodeArray.concat(processEntity(entityChild, nodeId))
       }
     }
 
-    for (let i = 0; i < nodeArray.length; i++)
-      childIds.push(nodeArray[i].id)
+    for (let i = 0; i < nodeArray.length; i++) childIds.push(nodeArray[i].id)
 
     const nodeContent = JSON.stringify(entity)
     const nodeData = Object.assign({}, entity, {
       id: nodeId,
       parent: parentId,
       children: childIds,
+      original_id: entity.id,
       internal: {
         type: type,
         content: nodeContent,
@@ -83,10 +80,9 @@ exports.sourceNodes = async (
     })
 
     nodeArray.push(nodeData)
-    
+
     return nodeArray //nodeArray.reverse()
   }
-
 
   /* These are content types which were created aside from
      dynamically added content types */
@@ -139,16 +135,14 @@ exports.sourceNodes = async (
     })
     const contentTypeData = await contentTypeResponse.json()
 
-
     for (let ctIndex = 0; ctIndex < contentTypeData.length; ctIndex++) {
       let item = contentTypeData[ctIndex]
-      
-      item.entity = contentType.slug;
-      
+
+      item.entity = contentType.slug
+
       nodesData = nodesData.concat(processEntity(item, null))
     }
   }
-
 
   // Finally we are creating nodes
   for (let nodeIndex = 0; nodeIndex < nodesData.length; nodeIndex++) {
