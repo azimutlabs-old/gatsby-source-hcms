@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-hcms",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Gatsby source plugin for building websites using hCMS as a data source",
   "author": {
     "email": "t.tazhibayev@alabs.team",
